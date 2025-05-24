@@ -75,7 +75,6 @@ def download_github_repo_contents(owner, repo, path="", local_dir="."):
 
 def copy_directory(src, dst):
     """复制源目录到目标目录
-    
     Args:
         src (str): 源目录路径
         dst (str): 目标目录路径
@@ -100,7 +99,6 @@ def copy_directory(src, dst):
 
 def clean_file_content(content):
     """清理文件内容：删除空白行，清理空白字符
-    
     Args:
         content (str): 原始文件内容
     Returns:
@@ -126,7 +124,6 @@ def clean_file_content(content):
 
 def process_files(directory):
     """递归处理目录下的所有文件
-    
     Args:
         directory (str): 要处理的目录路径
     """
@@ -146,7 +143,7 @@ def process_files(directory):
                 if new_content != content:
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(new_content)
-                    print(f'已处理文件: {file_path}')
+                    # print(f'已处理文件: {file_path}')
             except UnicodeDecodeError:
                 print(f'跳过二进制文件: {file_path}')
             except Exception as e:
@@ -155,7 +152,6 @@ def process_files(directory):
 def main():
     # 遍历device元组中的所有仓库
     for repo in device:
-        print(f"开始下载仓库: {repo}")
         download_github_repo_contents("STMicroelectronics", repo, "Source/Templates/gcc", f"startup/1_download/{repo}")
         print(f"仓库 {repo} 下载完成!")
     print("所有仓库下载完成!")
