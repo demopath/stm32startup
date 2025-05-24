@@ -1,6 +1,7 @@
 import requests
 import os
 import re
+import shutil
 
 device = (
     "cmsis-device-c0",
@@ -30,8 +31,6 @@ device = (
     "cmsis-device-wl3",
     "cmsis_device_mp13",
 )
-# stm32-mw-cmsis-rtos-tx
-# cmsis-core
 
 def download_github_repo_contents(owner, repo, path="", local_dir="."):
     """下载GitHub仓库指定路径下的所有内容到本地
@@ -65,7 +64,7 @@ def download_github_repo_contents(owner, repo, path="", local_dir="."):
                 continue
 
             # 如果是文件且有下载URL，直接下载
-            print(f"下载文件: {item['name']}")
+            # print(f"下载文件: {item['name']}")
             file_response = requests.get(download_url)
             
             if file_response.status_code == 200:
@@ -73,6 +72,31 @@ def download_github_repo_contents(owner, repo, path="", local_dir="."):
                     f.write(file_response.content)
             else:
                 print(f"下载文件 {item['name']} 失败: {file_response.status_code}")
+
+def copy_directory(src, dst):
+    """复制源目录到目标目录
+    
+    Args:
+        src (str): 源目录路径
+        dst (str): 目标目录路径
+    """
+    # 确保目标目录存在
+    os.makedirs(dst, exist_ok=True)
+    
+    # 遍历源目录下的所有文件和子目录
+    for item in os.listdir(src):
+        src_item = os.path.join(src, item)
+        dst_item = os.path.join(dst, item)
+        
+        if os.path.isdir(src_item):
+            # 如果是目录，递归复制
+            copy_directory(src_item, dst_item)
+        else:
+            # 如果是文件，直接复制
+            # 确保目标目录存在
+            os.makedirs(os.path.dirname(dst_item), exist_ok=True)
+            shutil.copy2(src_item, dst_item)
+            # print(f'已复制文件: {dst_item}')
 
 def clean_file_content(content):
     """清理文件内容：删除空白行，清理空白字符
@@ -112,7 +136,7 @@ def process_files(directory):
             file_path = os.path.join(root, file)
             try:
                 # 读取文件内容
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, 'r', encoding='windows-1252') as f:
                     content = f.read()
                 
                 # 处理文件内容
@@ -132,9 +156,19 @@ def main():
     # 遍历device元组中的所有仓库
     for repo in device:
         print(f"开始下载仓库: {repo}")
-        download_github_repo_contents("STMicroelectronics", repo, "Source/Templates/gcc", f"startup/{repo}")
+        download_github_repo_contents("STMicroelectronics", repo, "Source/Templates/gcc", f"startup/1_download/{repo}")
         print(f"仓库 {repo} 下载完成!")
     print("所有仓库下载完成!")
+
+    # 复制1_download目录到2_clean目录
+    print("开始复制1_download目录到2_clean目录...")
+    copy_directory("startup/1_download", "startup/2_clean")
+    print("复制完成!")
+
+    # 处理2_clean目录中的文件
+    print("开始处理2_clean目录中的文件...")
+    process_files('startup/2_clean')
+    print("处理完成!")
 
 # 使用示例：
 if __name__ == '__main__':
