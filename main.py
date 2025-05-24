@@ -3,34 +3,38 @@ import os
 import re
 import shutil
 
-device = (
-    "cmsis-device-c0",
-    "cmsis-device-f0",
-    "cmsis-device-f1",
-    "cmsis-device-f2",
-    "cmsis-device-f3",
-    "cmsis-device-f4",
-    "cmsis-device-f7",
-    "cmsis-device-g0",
-    "cmsis-device-g4",
-    "cmsis-device-h5",
-    "cmsis-device-h7",
-    "cmsis-device-h7rs",
-    "cmsis-device-l0",
-    "cmsis-device-l1",
-    "cmsis-device-l4",
-    "cmsis-device-l5",
-    "cmsis-device-n6",
-    "cmsis-device-u0",
-    "cmsis-device-u3",
-    "cmsis-device-u5",
-    "cmsis-device-wb",
-    "cmsis-device-wb0",
-    "cmsis-device-wba",
-    "cmsis-device-wl",
-    "cmsis-device-wl3",
-    "cmsis_device_mp13",
-)
+def get_device_list():
+    """从GitHub获取STMicroelectronics的cmsis-device仓库列表
+    Returns:
+        list: cmsis-device仓库列表
+    """
+    print("正在从GitHub获取STMicroelectronics的device列表...")
+    device_list = []
+    page = 1
+    per_page = 100
+    
+    while True:
+        url = f"https://api.github.com/orgs/STMicroelectronics/repos?page={page}&per_page={per_page}"
+        response = requests.get(url)
+        
+        if response.status_code != 200:
+            print(f"获取仓库列表失败: {response.status_code}")
+            break
+            
+        repos = response.json()
+        if not repos:  # 如果返回空列表，说明已经获取完所有仓库
+            break
+            
+        # 筛选出cmsis-device开头的仓库
+        for repo in repos:
+            repo_name = repo["name"]
+            if repo_name.startswith("cmsis-device-"):
+                device_list.append(repo_name)
+                
+        page += 1
+    
+    print(f"成功获取到{len(device_list)}个device仓库")
+    return tuple(device_list)
 
 def download_github_repo_contents(owner, repo, path="", local_dir="."):
     """下载GitHub仓库指定路径下的所有内容到本地
@@ -150,6 +154,41 @@ def process_files(directory):
                 print(f'处理文件 {file_path} 时出错: {str(e)}')
 
 def main():
+    # 获取device列表
+    device = get_device_list()
+    
+    # 如果获取失败，使用硬编码的列表作为备份
+    if not device:
+        print("使用硬编码的device列表作为备份...")
+        device = (
+            "cmsis-device-c0",
+            "cmsis-device-f0",
+            "cmsis-device-f1",
+            "cmsis-device-f2",
+            "cmsis-device-f3",
+            "cmsis-device-f4",
+            "cmsis-device-f7",
+            "cmsis-device-g0",
+            "cmsis-device-g4",
+            "cmsis-device-h5",
+            "cmsis-device-h7",
+            "cmsis-device-h7rs",
+            "cmsis-device-l0",
+            "cmsis-device-l1",
+            "cmsis-device-l4",
+            "cmsis-device-l5",
+            "cmsis-device-n6",
+            "cmsis-device-u0",
+            "cmsis-device-u3",
+            "cmsis-device-u5",
+            "cmsis-device-wb",
+            "cmsis-device-wb0",
+            "cmsis-device-wba",
+            "cmsis-device-wl",
+            "cmsis-device-wl3",
+            "cmsis_device_mp13",
+        )
+    
     # 删除startup目录（如果存在）
     if os.path.exists("startup"):
         print("删除已存在的startup目录...")
