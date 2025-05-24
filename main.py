@@ -150,6 +150,12 @@ def process_files(directory):
                 print(f'处理文件 {file_path} 时出错: {str(e)}')
 
 def main():
+    # 删除startup目录（如果存在）
+    if os.path.exists("startup"):
+        print("删除已存在的startup目录...")
+        shutil.rmtree("startup")
+        print("startup目录已删除!")
+        
     # 遍历device元组中的所有仓库
     for repo in device:
         download_github_repo_contents("STMicroelectronics", repo, "Source/Templates/gcc", f"startup/1_download/{repo}")
